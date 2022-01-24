@@ -1,6 +1,9 @@
 import os
+import platform
 import pandas as pd
 import logging
+import time
+import win32security
 
 
 def getInventory(current_path, current_folder, visited, file_list):
@@ -13,27 +16,34 @@ def getInventory(current_path, current_folder, visited, file_list):
         if os.path.isdir(current_path + '\\' + file_or_folder):
             folders.append(file_or_folder)
         else:
-            file_list.append((current_path, file_or_folder))
+            file_path = current_path + '\\' + file_or_folder
+            creation_date = time.ctime(os.path.getmtime(file_path))
+            mod_date = time.ctime(os.path.getctime(file_path))
+            exec_date = time.ctime(os.stat(file_path).st_atime)
+            file_owner = GetOwner(file_path)
 
-    logging.debug("file list is")
-    for filepath, filename in file_list:
-        logging.debug(filepath + " " + filename)
-    logging.debug("***************************")
+            file_list.append((current_path, file_or_folder, creation_date, mod_date, exec_date, file_owner))
+
     for child_folder in folders:
         if visited.get(current_path + '\\' + child_folder) is None:
             logging.debug("go down to " + child_folder)
             getInventory(current_path, child_folder, visited, file_list)
 
 
-def writeToExcel(file_list, inventory_df):
-    file_id_num = 1
-    for file_path, file_name in file_list:
-        inventory_df = inventory_df.append(pd.Series([file_id_num, file_path, file_name], index=inventory_df.columns),
-                                           ignore_index=True)
-        file_id_num += 1
-    if not os.path.isdir('output'):
-        os.makedirs('output')
-    inventory_df.to_excel("output\\inventory.xlsx", index=False)
+def GetOwner(filename):
+
+    username = ""
+    if platform.system() == 'Windows':
+        f = win32security.GetFileSecurity(filename, win32security.OWNER_SECURITY_INFORMATION)
+        (username, domain, sid_name_use) = win32security.LookupAccountSid(None, f.GetSecurityDescriptorOwner())
+        return username
+    else:
+        import pwd
+        stat_info = os.stat(filename)
+        uid = stat_info.st_uid
+        username = pwd.getpwuid(uid)[0]
+
+    return username
 
 
 if __name__ == '__main__':
@@ -52,13 +62,35 @@ if __name__ == '__main__':
     current_folder = 'logs'
     visited = dict()
     file_list = []
+    inventory_df = pd.DataFrame(columns=['INV_ID', 'INV_TYP', 'INV_LOC', 'INV_NM', 'INV_SAS_FL', 'INV_SAS_CR_DT',
+                                         'INV_SAS_MD_DT', 'INV_SAS_EX_DT', 'INV_SAS_FL_OWN', 'INV_SAS_FL_MTD_LOC',
+                                         'INV_SAS_FL_EXE_FLG'])
 
     getInventory(current_path, current_folder, visited, file_list)
 
     logging.debug(file_list)
 
-    inventory_df = pd.DataFrame(columns=['FILE_ID', 'FILE_PTH', 'FILE_NM'])
+    for number, record in enumerate(file_list):
 
-    writeToExcel(file_list, inventory_df)
+        INV_ID = number+1
+        INV_TYP = ""
+        INV_LOC = record[0]+'\\'+record[1]
+        INV_NM = record[1]
+        INV_SAS_FL = record[1]
+        INV_SAS_CR_DT = record[2]
+        INV_SAS_MD_DT = record[3]
+        INV_SAS_EX_DT = record[4]
+        INV_SAS_FL_OWN = record[5]
+        INV_SAS_FL_MTD_LOC = record[0]
+        INV_SAS_FL_EXE_FLG = ""
+
+        file_record = [INV_ID, INV_TYP, INV_LOC, INV_NM, INV_SAS_FL, INV_SAS_CR_DT, INV_SAS_MD_DT, INV_SAS_EX_DT,
+                       INV_SAS_FL_OWN, INV_SAS_FL_MTD_LOC, INV_SAS_FL_EXE_FLG]
+
+        inventory_df = inventory_df.append(pd.Series(file_record, index=inventory_df.columns), ignore_index=True)
+
+    if not os.path.isdir('output'):
+        os.makedirs('output')
+    inventory_df.to_excel("output\\inventory.xlsx", index=False)
 
     logging.info('end of the program')
