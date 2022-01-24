@@ -3,7 +3,8 @@ import platform
 import pandas as pd
 import logging
 import time
-
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 def getInventory(current_path, current_folder, visited, file_list):
 
@@ -64,7 +65,7 @@ def GetOwner(filename):
 
 if __name__ == '__main__':
 
-    #logging.disable(logging.DEBUG)
+    logging.disable(logging.ERROR)
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s-%(levelname)s-%(message)s')
     logging.info('start of the program')
 
@@ -75,7 +76,6 @@ if __name__ == '__main__':
         raise Exception('please put log files in the "\\logs" folder')
 
     current_path = os.getcwd()
-    print(current_path)
     current_folder = 'logs'
     visited = dict()
     file_list = []
