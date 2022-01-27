@@ -112,7 +112,8 @@ if __name__ == '__main__':
         else:
             INV_SAS_FL_EXE_FLG = 1
 
-        if INV_NM[-3:] in sas_extensions :
+        # extension filtering
+        if INV_NM[-3:] in sas_extensions:
             file_record = [INV_ID, INV_TYP, INV_LOC, INV_NM, INV_SAS_FL, INV_SAS_CR_DT, INV_SAS_MD_DT, INV_SAS_EX_DT,
                            INV_SAS_FL_OWN, INV_SAS_FL_MTD_LOC, INV_SAS_FL_EXE_FLG]
             inventory_df = inventory_df.append(pd.Series(file_record, index=inventory_df.columns), ignore_index=True)
@@ -120,9 +121,15 @@ if __name__ == '__main__':
 
     # get an absolute path of parent folder
     path = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
+
+    # write the result to the 00-Data Model directory
     if platform.system() == 'Windows':
+        if not os.path.isdir(path + "\\00-Data Model"):
+            os.makedirs(path + "\\00-Data Model")
         inventory_df.to_excel(path+"\\00-Data Model\\inventory.xlsx", index=False)
     else:
+        if not os.path.isdir(path + "/00-Data Model"):
+            os.makedirs(path + "/00-Data Model")
         inventory_df.to_excel(path+"/00-Data Model/inventory.xlsx", index=False)
 
     logging.info('end of the program')
