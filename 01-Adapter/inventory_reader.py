@@ -1,3 +1,9 @@
+"""
+input file: 01-Adapter/log
+output file: 00-Data Model
+program: 01-Adapter
+"""
+
 import os
 import platform
 import pandas as pd
@@ -22,7 +28,6 @@ def getInventory(current_path, current_folder, visited, file_list):
             child_path = current_path + '\\' + file_or_folder
         else:
             child_path = current_path + '/' + file_or_folder
-
 
         if os.path.isdir(child_path):
             folders.append(file_or_folder)
@@ -87,6 +92,9 @@ if __name__ == '__main__':
 
     logging.debug(file_list)
 
+    sas_extensions = ['ddf', 'djf', 'egp', 'sas', 'sas7bcat', 'sas7bdat', 'sas7bitm', 'sc2', 'sct01', 'sd2', 'spds9',
+                      'sri', 'ssd01', 'xsq']
+
     for number, record in enumerate(file_list):
 
         INV_ID = number+1
@@ -104,16 +112,17 @@ if __name__ == '__main__':
         else:
             INV_SAS_FL_EXE_FLG = 1
 
-        file_record = [INV_ID, INV_TYP, INV_LOC, INV_NM, INV_SAS_FL, INV_SAS_CR_DT, INV_SAS_MD_DT, INV_SAS_EX_DT,
-                       INV_SAS_FL_OWN, INV_SAS_FL_MTD_LOC, INV_SAS_FL_EXE_FLG]
+        if INV_NM[-3:] in sas_extensions :
+            file_record = [INV_ID, INV_TYP, INV_LOC, INV_NM, INV_SAS_FL, INV_SAS_CR_DT, INV_SAS_MD_DT, INV_SAS_EX_DT,
+                           INV_SAS_FL_OWN, INV_SAS_FL_MTD_LOC, INV_SAS_FL_EXE_FLG]
+            inventory_df = inventory_df.append(pd.Series(file_record, index=inventory_df.columns), ignore_index=True)
+            logging.debug(file_record)
 
-        inventory_df = inventory_df.append(pd.Series(file_record, index=inventory_df.columns), ignore_index=True)
-        logging.debug(file_record)
-
-    if not os.path.isdir('output'):
-        os.makedirs('output')
+    # get an absolute path of parent folder
+    path = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
     if platform.system() == 'Windows':
-        inventory_df.to_excel("output\\inventory.xlsx", index=False)
+        inventory_df.to_excel(path+"\\00-Data Model\\inventory.xlsx", index=False)
     else:
-        inventory_df.to_excel("output/inventory.xlsx", index=False)
+        inventory_df.to_excel(path+"/00-Data Model/inventory.xlsx", index=False)
+
     logging.info('end of the program')
