@@ -1,7 +1,8 @@
 """
-input file: 01-Adapter/log
-output file: 00-Data Model
-program: 01-Adapter
+input file location: 01-Adapter/logs
+output file location: 00-Data Model
+program location: 01-Adapter
+Program name: D_CLDASST_Inventory_Reader.exe
 """
 
 import os
@@ -11,6 +12,9 @@ import logging
 import time
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
+
+
+# get file names in '01-Adapter/logs' folder in a recursive way
 
 def getInventory(current_path, current_folder, visited, file_list):
 
@@ -35,7 +39,7 @@ def getInventory(current_path, current_folder, visited, file_list):
             creation_date = time.ctime(os.path.getmtime(child_path))
             mod_date = time.ctime(os.path.getctime(child_path))
             exec_date = time.ctime(os.stat(child_path).st_atime)
-            file_owner = GetOwner(child_path)
+            file_owner = getOwner(child_path)
 
             file_list.append((current_path, file_or_folder, creation_date, mod_date, exec_date, file_owner))
 
@@ -51,8 +55,8 @@ def getInventory(current_path, current_folder, visited, file_list):
             getInventory(current_path, child_folder, visited, file_list)
 
 
-def GetOwner(filename):
-
+# get file owner name. works on Windows and Linux environment
+def getOwner(filename):
     username = ""
     if platform.system() == 'Windows':
         import win32security
@@ -88,6 +92,7 @@ if __name__ == '__main__':
                                          'INV_SAS_MD_DT', 'INV_SAS_EX_DT', 'INV_SAS_FL_OWN', 'INV_SAS_FL_MTD_LOC',
                                          'INV_SAS_FL_EXE_FLG'])
 
+    # does not return a list. Instead, file_list has all the list of files as list is reference data type :)
     getInventory(current_path, current_folder, visited, file_list)
 
     logging.debug(file_list)
@@ -96,9 +101,7 @@ if __name__ == '__main__':
                       'sri', 'ssd01', 'xsq']
 
     counter = 1
-
     for record in file_list:
-
         if record[1][-3:] in sas_extensions:
 
             INV_ID = counter
@@ -116,8 +119,6 @@ if __name__ == '__main__':
                 INV_SAS_FL_EXE_FLG = 0
             else:
                 INV_SAS_FL_EXE_FLG = 1
-
-            # extension filtering
 
                 file_record = [INV_ID, INV_TYP, INV_LOC, INV_NM, INV_SAS_FL, INV_SAS_CR_DT, INV_SAS_MD_DT, INV_SAS_EX_DT,
                                INV_SAS_FL_OWN, INV_SAS_FL_MTD_LOC, INV_SAS_FL_EXE_FLG]
