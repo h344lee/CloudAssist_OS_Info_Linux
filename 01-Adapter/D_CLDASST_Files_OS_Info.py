@@ -16,7 +16,6 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 
 
 # get file names in '01-Adapter/logs' folder in a recursive way
-
 def getInventory(current_path, current_folder, visited, file_list):
 
     if platform.system() == 'Windows':
