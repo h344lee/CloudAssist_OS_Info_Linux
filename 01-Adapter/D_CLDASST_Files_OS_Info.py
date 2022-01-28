@@ -10,6 +10,7 @@ import platform
 import pandas as pd
 import logging
 import time
+import datetime
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
@@ -38,10 +39,9 @@ def getInventory(current_path, current_folder, visited, file_list):
         else:
             creation_date = time.ctime(os.path.getmtime(child_path))
             mod_date = time.ctime(os.path.getctime(child_path))
-            exec_date = time.ctime(os.stat(child_path).st_atime)
             file_owner = getOwner(child_path)
 
-            file_list.append((current_path, file_or_folder, creation_date, mod_date, exec_date, file_owner))
+            file_list.append((current_path, file_or_folder, creation_date, mod_date, file_owner))
 
     for child_folder in folders:
 
@@ -88,9 +88,8 @@ if __name__ == '__main__':
     current_folder = 'logs'
     visited = dict()
     file_list = []
-    inventory_df = pd.DataFrame(columns=['INV_ID', 'INV_TYP', 'INV_LOC', 'INV_NM', 'INV_SAS_FL', 'INV_SAS_CR_DT',
-                                         'INV_SAS_MD_DT', 'INV_SAS_EX_DT', 'INV_SAS_FL_OWN', 'INV_SAS_FL_MTD_LOC',
-                                         'INV_SAS_FL_EXE_FLG'])
+    inventory_df = pd.DataFrame(columns=['FILE_ID', 'FILE_PTH', 'FILE_NM', 'FILE_SAS_SRC_CR_DT', 'FILE_SAS_SRC_CR_TM',
+                                        'FILE_SAS_MOD_DT', 'FILE_SAS_MOD_TM', 'FILE_SAS_OWN'])
 
     # does not return a list. Instead, file_list has all the list of files as list is reference data type :)
     getInventory(current_path, current_folder, visited, file_list)
@@ -104,26 +103,26 @@ if __name__ == '__main__':
     for record in file_list:
         if record[1][-3:] in sas_extensions:
 
-            INV_ID = counter
+            FILE_ID = counter
             counter += 1
-            INV_TYP = ""
-            INV_LOC = record[0]+'\\'+record[1]
-            INV_NM = record[1]
-            INV_SAS_FL = record[1]
-            INV_SAS_CR_DT = record[2]
-            INV_SAS_MD_DT = record[3]
-            INV_SAS_EX_DT = record[4]
-            INV_SAS_FL_OWN = record[5]
-            INV_SAS_FL_MTD_LOC = record[0]
-            if INV_SAS_EX_DT == "":
-                INV_SAS_FL_EXE_FLG = 0
-            else:
-                INV_SAS_FL_EXE_FLG = 1
+            FILE_PTH = record[0]+'\\'+record[1]
+            FILE_NM = record[1]
 
-                file_record = [INV_ID, INV_TYP, INV_LOC, INV_NM, INV_SAS_FL, INV_SAS_CR_DT, INV_SAS_MD_DT, INV_SAS_EX_DT,
-                               INV_SAS_FL_OWN, INV_SAS_FL_MTD_LOC, INV_SAS_FL_EXE_FLG]
-                inventory_df = inventory_df.append(pd.Series(file_record, index=inventory_df.columns), ignore_index=True)
-                logging.debug(file_record)
+            creation_time = str(datetime.datetime.strptime(record[2], "%a %b %d %H:%M:%S %Y"))
+
+            FILE_SAS_SRC_CR_DT = creation_time[:10]
+            FILE_SAS_SRC_CR_TM = creation_time[12:]
+
+            mod_time = str(datetime.datetime.strptime(record[3], "%a %b %d %H:%M:%S %Y"))
+
+            FILE_SAS_MOD_DT = mod_time[:10]
+            FILE_SAS_MOD_TM = mod_time[12:]
+            FILE_SAS_OWN = record[4]
+
+            file_record = [FILE_ID, FILE_PTH, FILE_NM, FILE_SAS_SRC_CR_DT, FILE_SAS_SRC_CR_TM, FILE_SAS_MOD_DT,
+                           FILE_SAS_MOD_TM, FILE_SAS_OWN ]
+            inventory_df = inventory_df.append(pd.Series(file_record, index=inventory_df.columns), ignore_index=True)
+            logging.debug(file_record)
 
     # get an absolute path of parent folder
     path = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
@@ -132,10 +131,10 @@ if __name__ == '__main__':
     if platform.system() == 'Windows':
         if not os.path.isdir(path + "\\00-Data Model"):
             os.makedirs(path + "\\00-Data Model")
-        inventory_df.to_excel(path+"\\00-Data Model\\D_CLDASST_Inventory_Reader_Output.xlsx", index=False)
+        inventory_df.to_excel(path+"\\00-Data Model\\D_CLDASST_Files_OS_Output.xlsx", index=False)
     else:
         if not os.path.isdir(path + "/00-Data Model"):
             os.makedirs(path + "/00-Data Model")
-        inventory_df.to_excel(path+"/00-Data Model/D_CLDASST_Inventory_Reader_Output.xlsx", index=False)
+        inventory_df.to_excel(path+"/00-Data Model/D_CLDASST_Files_OS_Output.xlsx", index=False)
 
     logging.info('end of the program')
