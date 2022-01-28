@@ -95,29 +95,34 @@ if __name__ == '__main__':
     sas_extensions = ['ddf', 'djf', 'egp', 'sas', 'sas7bcat', 'sas7bdat', 'sas7bitm', 'sc2', 'sct01', 'sd2', 'spds9',
                       'sri', 'ssd01', 'xsq']
 
-    for number, record in enumerate(file_list):
+    counter = 1
 
-        INV_ID = number+1
-        INV_TYP = ""
-        INV_LOC = record[0]+'\\'+record[1]
-        INV_NM = record[1]
-        INV_SAS_FL = record[1]
-        INV_SAS_CR_DT = record[2]
-        INV_SAS_MD_DT = record[3]
-        INV_SAS_EX_DT = record[4]
-        INV_SAS_FL_OWN = record[5]
-        INV_SAS_FL_MTD_LOC = record[0]
-        if INV_SAS_EX_DT == "":
-            INV_SAS_FL_EXE_FLG = 0
-        else:
-            INV_SAS_FL_EXE_FLG = 1
+    for record in file_list:
 
-        # extension filtering
-        if INV_NM[-3:] in sas_extensions:
-            file_record = [INV_ID, INV_TYP, INV_LOC, INV_NM, INV_SAS_FL, INV_SAS_CR_DT, INV_SAS_MD_DT, INV_SAS_EX_DT,
-                           INV_SAS_FL_OWN, INV_SAS_FL_MTD_LOC, INV_SAS_FL_EXE_FLG]
-            inventory_df = inventory_df.append(pd.Series(file_record, index=inventory_df.columns), ignore_index=True)
-            logging.debug(file_record)
+        if record[1][-3:] in sas_extensions:
+
+            INV_ID = counter
+            counter += 1
+            INV_TYP = ""
+            INV_LOC = record[0]+'\\'+record[1]
+            INV_NM = record[1]
+            INV_SAS_FL = record[1]
+            INV_SAS_CR_DT = record[2]
+            INV_SAS_MD_DT = record[3]
+            INV_SAS_EX_DT = record[4]
+            INV_SAS_FL_OWN = record[5]
+            INV_SAS_FL_MTD_LOC = record[0]
+            if INV_SAS_EX_DT == "":
+                INV_SAS_FL_EXE_FLG = 0
+            else:
+                INV_SAS_FL_EXE_FLG = 1
+
+            # extension filtering
+
+                file_record = [INV_ID, INV_TYP, INV_LOC, INV_NM, INV_SAS_FL, INV_SAS_CR_DT, INV_SAS_MD_DT, INV_SAS_EX_DT,
+                               INV_SAS_FL_OWN, INV_SAS_FL_MTD_LOC, INV_SAS_FL_EXE_FLG]
+                inventory_df = inventory_df.append(pd.Series(file_record, index=inventory_df.columns), ignore_index=True)
+                logging.debug(file_record)
 
     # get an absolute path of parent folder
     path = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
