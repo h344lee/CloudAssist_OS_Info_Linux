@@ -100,7 +100,8 @@ if __name__ == '__main__':
 
     counter = 1
     for record in file_list:
-        if record[1][-3:] in sas_extensions:
+        extension = record[1].split('.')[1]
+        if extension in sas_extensions:
 
             FILE_ID = counter
             counter += 1
