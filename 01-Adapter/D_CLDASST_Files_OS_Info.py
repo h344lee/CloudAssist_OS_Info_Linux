@@ -131,10 +131,12 @@ if __name__ == '__main__':
     if platform.system() == 'Windows':
         if not os.path.isdir(path + "\\00-Data Model"):
             os.makedirs(path + "\\00-Data Model")
-        inventory_df.to_excel(path+"\\00-Data Model\\D_CLDASST_Files_OS_Output.xlsx", index=False)
+        inventory_df.to_excel(path+"\\00-Data Model\\D_CLDASST_DISC_OS_INFO.xlsx", index=False)
+        inventory_df.to_csv(path+"\\00-Data Model\\D_CLDASST_DISC_OS_INFO.csv", index=False)
     else:
         if not os.path.isdir(path + "/00-Data Model"):
             os.makedirs(path + "/00-Data Model")
-        inventory_df.to_excel(path+"/00-Data Model/D_CLDASST_Files_OS_Output.xlsx", index=False)
+        inventory_df.to_excel(path+"/00-Data Model/D_CLDASST_DISC_OS_INFO.xlsx", index=False)
+        inventory_df.to_csv(path + "/00-Data Model/D_CLDASST_DISC_OS_INFO.csv", index=False)
 
     logging.info('end of the program')
