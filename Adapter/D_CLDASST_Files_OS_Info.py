@@ -103,7 +103,7 @@ if __name__ == '__main__':
         extension = record[1].split('.')[1]
         if extension in sas_extensions:
 
-            FILE_ID = counter
+            FILE_ID = "SF_" + str(counter)
             counter += 1
             FILE_PTH = record[0]+'\\'+record[1]
             FILE_NM = record[1]
